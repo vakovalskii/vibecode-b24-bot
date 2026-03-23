@@ -180,7 +180,52 @@ async def main():
 asyncio.run(main())
 ```
 
-## AI assistant example
+## OpenAI Agents SDK example
+
+Build an AI bot with [OpenAI Agents SDK](https://github.com/openai/openai-agents-python) in under 30 lines:
+
+```bash
+pip install vibecode-b24-bot openai-agents
+```
+
+```python
+# bot.py
+import os
+from agents import Agent, Runner
+from vibecode_b24_bot import Bot
+
+bot = Bot(
+    api_key=os.environ["VIBE_API_KEY"],
+    bot_code="ai_agent",
+    bot_name="AI Agent",
+)
+
+agent = Agent(
+    name="Bitrix24 Assistant",
+    instructions=(
+        "You are a helpful assistant in a Bitrix24 corporate chat. "
+        "Answer concisely, in the user's language. No Markdown — plain text only."
+    ),
+)
+
+@bot.on_message
+async def handle(msg):
+    await msg.typing("thinking")
+    result = await Runner.run(agent, msg.text)
+    await msg.answer(result.final_output)
+
+bot.run()
+```
+
+```bash
+export VIBE_API_KEY=vibe_api_xxx
+export OPENAI_API_KEY=sk-xxx
+python bot.py
+```
+
+For a more advanced example with CRM tools (agent can search deals and contacts), see [`examples/openai_agent_with_tools.py`](examples/openai_agent_with_tools.py).
+
+## AI assistant with any LLM
 
 Connect any OpenAI-compatible LLM (Ollama, vLLM, OpenRouter, etc.):
 
