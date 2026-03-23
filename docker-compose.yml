@@ -1,0 +1,10 @@
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    environment:
+      - VIBE_API_KEY=${VIBE_API_KEY}
+      # For AI assistant bot (optional):
+      # - LLM_BASE_URL=http://host.docker.internal:11434/v1
+      # - LLM_API_KEY=your-llm-key
+      # - LLM_MODEL=llama3

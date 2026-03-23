@@ -2,7 +2,7 @@
 
 import os
 import aiohttp
-from vibecode import Bot
+from vibecode_b24_bot import Bot
 
 bot = Bot(
     api_key=os.environ["VIBE_API_KEY"],

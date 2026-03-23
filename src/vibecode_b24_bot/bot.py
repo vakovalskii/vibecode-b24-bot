@@ -2,7 +2,7 @@
 
 Usage::
 
-    from vibecode import Bot
+    from vibecode_b24_bot import Bot
 
     bot = Bot(api_key="vibe_api_...")
 
@@ -25,8 +25,8 @@ import logging
 import signal
 from typing import Any, Callable, Awaitable
 
-from vibecode.client import VibeCode, APIError
-from vibecode.types import Event, Message, MessageData, Chat, User, Command
+from vibecode_b24_bot.client import VibeCode, APIError
+from vibecode_b24_bot.types import Event, Message, MessageData, Chat, User, Command
 
 logger = logging.getLogger("vibecode")
 

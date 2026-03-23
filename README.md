@@ -10,11 +10,25 @@ Async bot framework like `aiogram`, but for Bitrix24. Plus CRM/tasks/entities cl
 pip install vibecode-b24-bot
 ```
 
-## Quick start — Bot
+## Getting your API key
+
+1. Go to your Bitrix24 portal (e.g. `https://your-company.bitrix24.ru`)
+2. Open **VibeCode** section: `https://your-company.bitrix24.ru/vibe/`
+3. Navigate to **API-ключи** (API keys)
+4. Click **Создать API-ключ** (Create API key)
+5. Select required permissions (at minimum: `imbot` for bots, `crm` for CRM, `tasks` for tasks)
+6. Copy the key — it looks like `vibe_api_xxxxxxxxxxxxx`
+
+> **Note:** Your portal needs an active subscription or demo mode for REST API to work. Enable demo for free on the portal's main page.
+
+## Quick start
+
+### 1. Create your bot
 
 ```python
+# bot.py
 import os
-from vibecode import Bot, bb
+from vibecode_b24_bot import Bot, bb
 
 bot = Bot(
     api_key=os.environ["VIBE_API_KEY"],
@@ -34,19 +48,34 @@ async def help_cmd(msg, cmd):
 bot.run()
 ```
 
-## Quick start — CRM / Entities
+### 2. Run it
 
-```python
-import asyncio, os
-from vibecode import VibeCode
+```bash
+export VIBE_API_KEY=vibe_api_your_key_here
+python bot.py
+```
 
-async def main():
-    async with VibeCode(api_key=os.environ["VIBE_API_KEY"]) as client:
-        deals = await client.list_entity("deals", limit=10)
-        for d in deals:
-            print(d["TITLE"], d["OPPORTUNITY"])
+The bot will:
+- Register itself in your Bitrix24 portal
+- Start polling for messages
+- Appear in the messenger as "My Bot"
 
-asyncio.run(main())
+Open your Bitrix24 messenger, find the bot, and send a message!
+
+### 3. Run with Docker
+
+```bash
+# Copy your bot file
+cp examples/echo_bot.py bot.py
+
+# Run with docker-compose
+VIBE_API_KEY=vibe_api_xxx docker-compose up -d
+
+# Or with plain docker
+docker build -t my-b24-bot .
+docker run -d --restart unless-stopped \
+  -e VIBE_API_KEY=vibe_api_xxx \
+  my-b24-bot
 ```
 
 ## Features
@@ -64,17 +93,22 @@ asyncio.run(main())
 ## Bot types
 
 ```python
-Bot(api_key=key, bot_type="bot")         # Standard — responds to @mention and DMs
-Bot(api_key=key, bot_type="personal")    # AI assistant — sees ALL messages
-Bot(api_key=key, bot_type="supervisor")  # Observer — monitoring, analytics
+# Standard bot — responds to @mention and direct messages
+Bot(api_key=key, bot_type="bot")
+
+# Personal AI assistant — sees ALL messages in chats it's in
+Bot(api_key=key, bot_type="personal")
+
+# Supervisor/observer — for monitoring, analytics, moderation
+Bot(api_key=key, bot_type="supervisor")
 ```
 
 ## Formatting (BB-codes)
 
-Bitrix24 chat uses BB-codes, not Markdown:
+Bitrix24 chat uses BB-codes, **not Markdown**:
 
 ```python
-from vibecode import bb
+from vibecode_b24_bot import bb
 
 bb.bold("important")          # [b]important[/b]
 bb.italic("note")             # [i]note[/i]
@@ -98,41 +132,82 @@ async def handle(msg):
     msg.chat          # Chat object (id, name, type)
 
     await msg.answer("reply")         # send reply
-    await msg.typing("thinking")      # show typing
+    await msg.typing("thinking")      # show typing indicator
     await msg.react("like")           # add reaction
 ```
 
-## Low-level client
+## Typing statuses
 
 ```python
-async with VibeCode(api_key=key) as client:
-    # Entity CRUD
-    await client.list_entity("deals", limit=50)
-    await client.get_entity("deals", 123)
-    await client.create_entity("deals", title="New", amount=50000)
-    await client.update_entity("deals", 123, stageId="WON")
-    await client.delete_entity("deals", 123)
-    await client.search_entity("deals", filter={"stageId": "NEW"})
-
-    # Batch
-    await client.batch([
-        {"method": "crm.status.list"},
-        {"method": "crm.deal.fields"},
-    ])
-
-    # Direct method call
-    await client.call("app.info")
-
-    # Portal info
-    await client.me()
+await msg.typing("thinking")     # Agent is thinking...
+await msg.typing("searching")    # Agent is searching...
+await msg.typing("generating")   # Agent is preparing answer...
+await msg.typing("analyzing")    # Agent is analyzing...
+await msg.typing("processing")   # Agent is processing data...
+await msg.typing("translating")  # Agent is translating...
+await msg.typing("reading")      # Agent is reading documents...
+await msg.typing("composing")    # Agent is composing answer...
 ```
+
+## Low-level client (CRM, tasks, entities)
+
+```python
+import asyncio, os
+from vibecode_b24_bot import VibeCode
+
+async def main():
+    async with VibeCode(api_key=os.environ["VIBE_API_KEY"]) as client:
+        # Entity CRUD (35 entities: deals, contacts, tasks, users, etc.)
+        await client.list_entity("deals", limit=50)
+        await client.get_entity("deals", 123)
+        await client.create_entity("deals", title="New deal", amount=50000)
+        await client.update_entity("deals", 123, stageId="WON")
+        await client.delete_entity("deals", 123)
+        await client.search_entity("deals", filter={"stageId": "NEW"})
+
+        # Batch — 50 calls in 1 request (1 rate-limit unit)
+        await client.batch([
+            {"method": "crm.status.list"},
+            {"method": "crm.deal.fields"},
+        ])
+
+        # Direct Bitrix24 method call
+        await client.call("app.info")
+
+        # Portal info
+        await client.me()
+
+asyncio.run(main())
+```
+
+## AI assistant example
+
+Connect any OpenAI-compatible LLM (Ollama, vLLM, OpenRouter, etc.):
+
+```bash
+export VIBE_API_KEY=vibe_api_xxx
+export LLM_BASE_URL=http://localhost:11434/v1
+export LLM_MODEL=llama3
+python examples/ai_assistant.py
+```
+
+See [`examples/`](examples/) for full code.
+
+## Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VIBE_API_KEY` | Yes | VibeCode API key from your Bitrix24 portal |
+| `LLM_BASE_URL` | No | OpenAI-compatible API URL (for AI assistant) |
+| `LLM_API_KEY` | No | LLM API key |
+| `LLM_MODEL` | No | LLM model name |
 
 ## Examples
 
-See [`examples/`](examples/) directory:
-- `echo_bot.py` — simple echo bot
-- `ai_assistant.py` — LLM-powered chat bot (any OpenAI-compatible API)
-- `crm_dashboard.py` — fetch CRM deals
+- [`examples/echo_bot.py`](examples/echo_bot.py) — simple echo bot
+- [`examples/ai_assistant.py`](examples/ai_assistant.py) — LLM-powered chat bot
+- [`examples/crm_dashboard.py`](examples/crm_dashboard.py) — fetch CRM deals
+- [`Dockerfile`](Dockerfile) + [`docker-compose.yml`](docker-compose.yml) — containerized deployment
 
 ## License
 

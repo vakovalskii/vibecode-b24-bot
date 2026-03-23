@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from vibecode.bot import Bot
+    from vibecode_b24_bot.bot import Bot
 
 
 @dataclass

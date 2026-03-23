@@ -2,7 +2,7 @@
 
 import asyncio
 import os
-from vibecode import VibeCode
+from vibecode_b24_bot import VibeCode
 
 
 async def main():

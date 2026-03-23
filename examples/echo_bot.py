@@ -1,7 +1,7 @@
 """Simple echo bot for Bitrix24 via VibeCode API."""
 
 import os
-from vibecode import Bot, bb
+from vibecode_b24_bot import Bot, bb
 
 bot = Bot(
     api_key=os.environ["VIBE_API_KEY"],
