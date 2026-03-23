@@ -1,13 +1,13 @@
-# vibecode
+# vibecode-b24-bot
 
-Python SDK for Bitrix24 via [VibeCode](https://vibecode.bitrix24.tech) API.
+Python SDK for Bitrix24 bots via [VibeCode](https://vibecode.bitrix24.tech) API.
 
-Async bot framework + CRM/tasks/entities client. Like `aiogram` but for Bitrix24.
+Async bot framework like `aiogram`, but for Bitrix24. Plus CRM/tasks/entities client.
 
 ## Install
 
 ```bash
-pip install vibecode
+pip install vibecode-b24-bot
 ```
 
 ## Quick start — Bot
